@@ -1,293 +1,214 @@
-/* ============================================================
-   متغیرهای تم (تم نارنجی/مشکی باشگاهی)
-   اگر خواستید رنگ برند را عوض کنید، فقط همین چند خط را تغییر دهید
-   و بقیه‌ی صفحه به‌طور خودکار آپدیت می‌شود.
-   ============================================================ */
-:root {
-  --orange: #ff6a00;          /* رنگ اصلی نارنجی */
-  --orange-light: #ff8c3a;    /* نارنجی روشن‌تر برای گرادیانت */
-  --orange-glow: rgba(255, 106, 0, 0.35); /* برای هاله‌ی درخشان اطراف عناصر */
-  --black: #0a0a0a;           /* مشکی پس‌زمینه */
-  --black-soft: #161616;      /* مشکی کارت (کمی روشن‌تر) */
-  --black-border: #262626;    /* رنگ حاشیه */
-  --white: #f5f5f5;           /* متن اصلی */
-  --gray: #888;               /* متن ثانویه */
-  --danger: #ff3b3b;          /* قرمز برای هشدار (جلسات کم) */
+// ============================================================
+// ⚙️ بخش ۱: تنظیمات
+// ⚠️ این دو مقدار را از پنل Supabase → Settings → API بردارید
+// و جایگزین کنید. بدون این دو، صفحه کار نمی‌کند.
+// ============================================================
+const SUPABASE_URL = 'https://aykilcqlydloxmvgjuwj.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_WPN3BAGfDaSu9i5K4pnUhw_Mzqv0_7r';
+
+// ============================================================
+// 📌 بخش ۲: گرفتن ارجاع به المان‌های صفحه
+// این کار را یک بار انجام می‌دهیم تا در جاهای مختلف کد مجبور نباشیم
+// هر بار document.getElementById صدا بزنیم (هم سریع‌تر است هم تمیزتر)
+// ============================================================
+const loadingEl     = document.getElementById('loading');
+const errorStateEl  = document.getElementById('error-state');
+const errorTitleEl  = document.getElementById('error-title');
+const errorMsgEl    = document.getElementById('error-message');
+const contentEl     = document.getElementById('content');
+const sessionsEl    = document.getElementById('remaining-sessions');
+const expiryEl      = document.getElementById('expiry-date');
+const instagramBtn  = document.getElementById('instagram-btn');
+const telegramBtn   = document.getElementById('telegram-btn');
+
+// ============================================================
+// 🧰 بخش ۳: توابع کمکی
+// ============================================================
+
+/**
+ * نمایش پیام خطا و پنهان کردن بقیه بخش‌ها
+ * @param {string} title - عنوان خطا (مثلاً "کارت پیدا نشد")
+ * @param {string} message - توضیح خطا
+ */
+function showError(title, message) {
+  loadingEl.classList.add('hidden');
+  contentEl.classList.add('hidden');
+  errorStateEl.classList.remove('hidden');
+  errorTitleEl.textContent = title;
+  errorMsgEl.textContent = message;
 }
 
-/* ============================================================
-   ریست پایه: مرورگرها استایل پیش‌فرض متفاوتی دارند
-   این چند خط استانداردسازی می‌کند تا همه‌جا یکسان باشد.
-   ============================================================ */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box; /* اندازه‌گیری عرض/ارتفاع شامل padding و border می‌شود */
+/**
+ * نمایش محتوای اصلی و پنهان کردن بقیه
+ */
+function showContent() {
+  loadingEl.classList.add('hidden');
+  errorStateEl.classList.add('hidden');
+  contentEl.classList.remove('hidden');
 }
 
-/* ============================================================
-   استایل body
-   پس‌زمینه تیره با یک هاله‌ی نارنجی ملایم در بالای صفحه
-   تا حس "نور افکن" یا "گرمای باشگاه" القا شود.
-   ============================================================ */
-body {
-  font-family: 'Vazirmatn', Tahoma, sans-serif; /* فونت با fallback */
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px; /* فاصله از لبه‌ها در موبایل */
+/**
+ * تبدیل تاریخ میلادی (YYYY-MM-DD) به تاریخ شمسی خوانا
+ * اگر تبدیل ناموفق بود، همان مقدار خام را برمی‌گرداند تا صفحه خراب نشود.
+ * @param {string} dateStr
+ * @returns {string}
+ */
+function toPersianDate(dateStr) {
+  if (!dateStr) return 'نامشخص';
 
-  /* پس‌زمینه تیره */
-  background-color: var(--black);
+  try {
+    const date = new Date(dateStr);
+    // بررسی اینکه تاریخ معتبر است
+    if (isNaN(date.getTime())) return dateStr;
 
-  /*
-    یک گرادیانت شعاعی نارنجی محو در بالای صفحه می‌سازیم
-    که با پس‌زمینه‌ی مشکی ترکیب شود و عمق بدهد
-  */
-  background-image: radial-gradient(
-    ellipse at top,
-    rgba(255, 106, 0, 0.15) 0%,
-    transparent 60%
-  );
-  background-attachment: fixed;
-
-  color: var(--white);
-}
-
-/* ============================================================
-   کلاس کمکی برای پنهان کردن بخش‌ها
-   هر بخشی که این کلاس داشته باشد دیده نمی‌شود.
-   (به‌جای style.display = 'none' از کلاس استفاده می‌کنیم تا انیمیشن‌پذیر باشد)
-   ============================================================ */
-.hidden {
-  display: none !important;
-}
-
-/* ============================================================
-   صفحه‌های حالت (لودینگ و خطا)
-   ============================================================ */
-.state-screen {
-  text-align: center;
-  max-width: 400px;
-}
-
-/* اسپینر چرخان */
-.spinner {
-  width: 56px;
-  height: 56px;
-  border: 4px solid var(--black-border);
-  border-top-color: var(--orange); /* فقط یک ضلع نارنجی */
-  border-radius: 50%;
-  margin: 0 auto 20px;
-  animation: spin 0.9s linear infinite; /* چرخش بی‌پایان */
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.loading-text {
-  color: var(--gray);
-  font-size: 15px;
-}
-
-/* آیکون و متن خطا */
-.error-icon {
-  font-size: 56px;
-  margin-bottom: 16px;
-}
-#error-title {
-  font-size: 22px;
-  margin-bottom: 8px;
-}
-#error-message {
-  color: var(--gray);
-  font-size: 15px;
-  line-height: 1.6;
-}
-
-/* ============================================================
-   کارت اصلی
-   ============================================================ */
-.card {
-  width: 100%;
-  max-width: 400px;
-  background: var(--black-soft);
-  border: 1px solid var(--black-border);
-  border-radius: 24px;
-  padding: 32px 24px;
-  position: relative; /* برای قرار دادن هاله‌ی نارنجی در بالای کارت */
-  overflow: hidden;
-  box-shadow:
-    0 20px 50px rgba(0, 0, 0, 0.5),
-    0 0 60px var(--orange-glow); /* هاله‌ی نارنجی ملایم */
-
-  /* انیمیشن ورود کارت */
-  animation: cardIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes cardIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
+    // Intl.DateTimeFormat به‌طور بومی تاریخ را به تقویم شمسی تبدیل می‌کند
+    return new Intl.DateTimeFormat('fa-IR', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    }).format(date);
+  } catch (err) {
+    console.error('خطا در تبدیل تاریخ:', err);
+    return dateStr; // fallback
   }
 }
 
-/* نوار نارنجی محو در بالای کارت (حس برندینگ) */
-.card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--orange), var(--orange-light));
+/**
+ * قرار دادن امن متن داخل المان
+ * (به‌جای innerHTML که خطر XSS دارد)
+ */
+function setSafeText(el, text) {
+  el.textContent = text;
 }
 
-/* ============================================================
-   هدر کارت
-   ============================================================ */
-.card-header {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  margin-bottom: 28px;
+// ============================================================
+// 🚀 بخش ۴: منطق اصلی برنامه
+// ============================================================
+
+/**
+ * تابع اصلی که صفحه با لود شدن اجرا می‌شود
+ */
+async function init() {
+  // --- گام ۱: خواندن توکن از آدرس صفحه ---
+  // مثال آدرس: https://user.github.io/repo/?token=ABC123
+  // URLSearchParams به‌طور خودکار پارامترها را از ? به بعد جدا می‌کند
+  const params = new URLSearchParams(window.location.search);
+  const token = params.get('token');
+
+  // اگر توکن در آدرس نبود، خطا بده
+  if (!token) {
+    showError(
+      'توکن پیدا نشد',
+      'لطفاً کارت باشگاه را به گوشی نزدیک کنید تا صفحه به‌درستی باز شود.'
+    );
+    return;
+  }
+
+  // --- گام ۲: بررسی اینکه کتابخانه Supabase لود شده است یا نه ---
+  // اگر CDN در دسترس نبود یا اسکریپت لود نشد، اینجا خطا می‌دهیم
+  // تا به‌جای کرش کردن، پیام مناسب به کاربر نشان داده شود.
+  if (typeof supabase === 'undefined') {
+    showError(
+      'خطای اتصال',
+      'کتابخانه دیتابیس لود نشد. لطفاً اتصال اینترنت خود را بررسی کنید.'
+    );
+    return;
+  }
+
+  // --- گام ۳: ساخت کلاینت Supabase ---
+  // هر بار که صفحه باز می‌شود یک کلاینت جدید ساخته می‌شود (که اشکالی ندارد)
+  const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // --- گام ۴: درخواست به دیتابیس ---
+  try {
+    // از جدول members ردیفی را می‌خواهیم که ستون token آن برابر توکن باشد
+    // .single() یعنی "فقط یک ردیف انتظار داریم"
+    const { data, error } = await client
+      .from('members')
+      .select('remaining_sessions, expiry_date, instagram_url, telegram_url')
+      .eq('token', token)
+      .single();
+
+    // اگر Supabase خطا برگرداند (مثلاً ردیفی پیدا نشد یا RLS بست)
+    if (error) {
+      console.error('خطای Supabase:', error);
+
+      // کد PGRST116 یعنی "هیچ ردیفی پیدا نشد"
+      if (error.code === 'PGRST116') {
+        showError(
+          'کارت شناسایی نشد',
+          'این کارت در سیستم ثبت نشده است. لطفاً با باشگاه تماس بگیرید.'
+        );
+      } else {
+        // خطای دیگر (شبکه، دسترسی RLS و...)
+        showError(
+          'خطا در دریافت اطلاعات',
+          'ارتباط با سرور برقرار نشد. لطفاً چند لحظه بعد دوباره تلاش کنید.'
+        );
+      }
+      return;
+    }
+
+    // اگر data خالی بود (نباید رخ دهد چون قبلاً error چک شده)
+    if (!data) {
+      showError(
+        'اطلاعاتی یافت نشد',
+        'این کارت در سیستم وجود ندارد.'
+      );
+      return;
+    }
+
+    // --- گام ۵: پر کردن صفحه با داده‌های دریافتی ---
+
+    // ۵.۱: تعداد جلسات
+    const sessions = data.remaining_sessions ?? 0;
+    setSafeText(sessionsEl, String(sessions));
+
+    // اگر جلسات صفر یا خیلی کم بود، رنگ را به قرمز تغییر می‌دهیم
+    // (این باعث می‌شود کاربر سریع متوجه شود باید شارژ کند)
+    if (sessions <= 0) {
+      sessionsEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 59, 59, 0.6))';
+      sessionsEl.style.background = 'linear-gradient(180deg, #ff6b6b, var(--danger))';
+      sessionsEl.style.webkitBackgroundClip = 'text';
+      sessionsEl.style.backgroundClip = 'text';
+    } else if (sessions <= 3) {
+      // بین ۱ تا ۳ جلسه: هشدار
+      sessionsEl.style.filter = 'drop-shadow(0 0 20px rgba(255, 140, 58, 0.6))';
+    }
+
+    // ۵.۲: تاریخ انقضا به شمسی
+    setSafeText(expiryEl, toPersianDate(data.expiry_date));
+
+    // ۵.۳: لینک‌های شبکه‌های اجتماعی
+    // اگر لینک تعریف نشده بود، دکمه را پنهان می‌کنیم (نه اینکه لینک خالی بگذاریم)
+    if (data.instagram_url) {
+      instagramBtn.href = data.instagram_url;
+    } else {
+      instagramBtn.style.display = 'none';
+    }
+
+    if (data.telegram_url) {
+      telegramBtn.href = data.telegram_url;
+    } else {
+      telegramBtn.style.display = 'none';
+    }
+
+    // --- گام ۶: نمایش نهایی محتوا ---
+    showContent();
+
+  } catch (err) {
+    // این catch برای خطاهای غیرمنتظره است (مثلاً قطعی کامل شبکه)
+    console.error('خطای غیرمنتظره:', err);
+    showError(
+      'خطای غیرمنتظره',
+      'مشکلی پیش آمد. لطفاً دوباره تلاش کنید.'
+    );
+  }
 }
 
-.gym-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--orange);
-}
-
-.card-title {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--white);
-}
-
-.accent {
-  color: var(--orange);
-}
-
-/* ============================================================
-   بخش تعداد جلسات
-   ============================================================ */
-.sessions-block {
-  text-align: center;
-  padding: 20px 0 24px;
-  border-bottom: 1px dashed var(--black-border);
-  margin-bottom: 20px;
-}
-
-.label {
-  display: block;
-  color: var(--gray);
-  font-size: 13px;
-  margin-bottom: 8px;
-  letter-spacing: 0.5px;
-}
-
-/* عدد بزرگ */
-.big-number {
-  display: inline-block;
-  font-size: 64px;
-  font-weight: 900;
-  line-height: 1;
-
-  /* متن با گرادیانت نارنجی */
-  background: linear-gradient(180deg, var(--orange-light), var(--orange));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  -webkit-text-fill-color: transparent;
-
-  /* هاله‌ی نارنجی اطراف عدد */
-  filter: drop-shadow(0 0 20px var(--orange-glow));
-}
-
-.unit {
-  display: inline-block;
-  margin-right: 6px;
-  color: var(--gray);
-  font-size: 16px;
-  vertical-align: middle;
-}
-
-/* ============================================================
-   بخش تاریخ انقضا
-   ============================================================ */
-.expiry-block {
-  text-align: center;
-  margin-bottom: 24px;
-}
-
-.expiry-date {
-  display: inline-block;
-  background: rgba(255, 106, 0, 0.08);
-  border: 1px solid rgba(255, 106, 0, 0.25);
-  color: var(--orange-light);
-  padding: 8px 18px;
-  border-radius: 12px;
-  font-size: 15px;
-  font-weight: 600;
-}
-
-/* ============================================================
-   دکمه‌های شبکه‌های اجتماعی
-   ============================================================ */
-.socials {
-  display: grid;
-  grid-template-columns: 1fr 1fr; /* دو ستون مساوی */
-  gap: 12px;
-}
-
-.social-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px;
-  border-radius: 14px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 600;
-  transition: all 0.25s ease;
-  border: 1px solid var(--black-border);
-  background: #1e1e1e;
-  color: var(--white);
-}
-
-/* افکت هاور (در دسکتاپ) */
-.social-btn:hover {
-  border-color: var(--orange);
-  color: var(--orange);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px var(--orange-glow);
-}
-
-/* لمس (در موبایل) */
-.social-btn:active {
-  transform: scale(0.97);
-}
-
-/* آیکون داخل دکمه */
-.social-btn svg {
-  flex-shrink: 0; /* جلوگیری از فشرده شدن آیکون */
-}
-
-/* ============================================================
-   واکنش‌گرایی (Responsive)
-   در صفحه‌های خیلی کوچک، عدد کمی کوچک‌تر شود
-   ============================================================ */
-@media (max-width: 360px) {
-  .big-number { font-size: 52px; }
-  .card { padding: 24px 18px; }
-  .socials { grid-template-columns: 1fr; } /* دکمه‌ها زیر هم بیایند */
-}
+// ============================================================
+// 🏁 بخش ۵: راه‌اندازی
+// DOMContentLoaded یعنی "صبر کن تا کل HTML لود شود، بعد اجرا کن"
+// این کار جلوی خطاهای "المان پیدا نشد" را می‌گیرد.
+// ============================================================
+document.addEventListener('DOMContentLoaded', init);
