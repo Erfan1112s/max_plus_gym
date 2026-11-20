@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پنل مدیریت باشگاه مکس پلاس</title>
+  <style>
+    body { font-family: Tahoma, sans-serif; background: #121212; color: white; padding: 20px; display: flex; justify-content: center; }
+    .box { background: #1e1e1e; padding: 30px; border-radius: 15px; width: 100%; max-width: 400px; border: 1px solid #333; }
+    h2 { color: #ff6a00; text-align: center; margin-bottom: 20px; }
+    label { display: block; margin-top: 15px; color: #aaa; font-size: 14px; }
+    input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; margin-top: 25px; background: #ff6a00; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    button:hover { background: #e65c00; }
+    .result { margin-top: 20px; padding: 15px; background: #0a2e0a; border: 1px solid #1b5e20; border-radius: 8px; display: none; word-break: break-all; }
+    .result p { margin: 0 0 10px 0; color: #81c784; font-size: 14px; }
+    .link-box { background: #000; padding: 10px; border-radius: 5px; color: #fff; font-family: monospace; font-size: 12px; user-select: all; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>ثبت‌نام عضو جدید</h2>
+    
+    <label>نام و نام خانوادگی:</label>
+    <input type="text" id="memberName" placeholder="مثلاً: علی رضایی">
+    
+    <label>تاریخ انقضا:</label>
+    <input type="date" id="expiryDate">
+    
+    <button onclick="registerMember()">ثبت و ساخت لینک کارت</button>
+
+    <div class="result" id="resultBox">
+      <p>✅ عضو ثبت شد! لینک کارت NFC (کپی کنید):</p>
+      <div class="link-box" id="finalLink"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // ⚠️ این دو خط را از پنل Supabase (Settings -> API) جایگزین کنید
+    const SUPABASE_URL = 'آدرس_URL_خود_را_اینجا_بگذارید';
+    const SUPABASE_ANON_KEY = 'کلید_ANON_خود_را_اینجا_بگذارید';
+    
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    async function registerMember() {
+      const name = document.getElementById('memberName').value;
+      const date = document.getElementById('expiryDate').value;
+      
+      if(!name || !date) return alert('لطفاً نام و تاریخ را وارد کنید');
+
+      const { data, error } = await client
+        .from('members')
+        .insert([{ member_name: name, expiry_date: date }])
+        .select();
+
+      if (error) {
+        alert('خطا در ثبت: ' + error.message);
+        return;
+      }
+
+      const token = data[0].token;
+      const link = window.location.href.replace('admin.html', '') + `?token=${token}`;
+      
+      document.getElementById('finalLink').textContent = link;
+      document.getElementById('resultBox').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
