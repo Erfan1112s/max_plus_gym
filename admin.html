@@ -3,50 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>پنل مدیریت حرفه‌ای باشگاه</title>
-  <!-- اضافه کردن کتابخانه خواندن اکسل (SheetJS) -->
+  <title>پنل مدیریت باشگاه مکس پلاس</title>
+  <!-- کتابخانه خواندن فایل اکسل (SheetJS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
-    body { font-family: Tahoma, sans-serif; background: #121212; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+    body { font-family: Tahoma, sans-serif; background: #121212; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
     .hidden { display: none !important; }
-    .box { background: #1e1e1e; padding: 30px; border-radius: 15px; width: 100%; max-width: 600px; border: 1px solid #333; margin-bottom: 20px; }
-    h2 { color: #ff6a00; text-align: center; margin-bottom: 20px; }
+    .box { background: #1e1e1e; padding: 30px; border-radius: 15px; width: 100%; max-width: 600px; border: 1px solid #333; margin-bottom: 20px; box-sizing: border-box; }
+    h2 { color: #ff6a00; text-align: center; margin-bottom: 20px; margin-top: 0; }
     label { display: block; margin-top: 15px; color: #aaa; font-size: 14px; }
     input[type="text"], input[type="date"], input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; margin-top: 20px; background: #ff6a00; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
+    button { width: 100%; padding: 12px; margin-top: 20px; background: #ff6a00; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
     button:hover { background: #e65c00; }
-    .btn-google { background: #4285F4; }
+    .btn-google { background: #4285F4; margin-top: 0; }
     .btn-google:hover { background: #3367d6; }
-    .btn-deduct { background: #d32f2f; padding: 8px; font-size: 12px; margin: 0; width: auto;}
+    .btn-deduct { background: #d32f2f; padding: 8px; font-size: 12px; margin: 0; width: auto; }
     .btn-deduct:hover { background: #b71c1c; }
+    .btn-logout { background: #444; margin-bottom: 30px; width: auto; padding: 10px 30px; }
+    .btn-logout:hover { background: #222; }
     
     /* جدول کاربران */
     table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
     th, td { padding: 10px; text-align: right; border-bottom: 1px solid #333; }
     th { color: #ff6a00; }
     .result { margin-top: 20px; padding: 15px; background: #0a2e0a; border: 1px solid #1b5e20; border-radius: 8px; display: none; word-break: break-all; }
-    .link-box { background: #000; padding: 10px; border-radius: 5px; color: #fff; font-family: monospace; font-size: 12px; user-select: all; }
+    .link-box { background: #000; padding: 10px; border-radius: 5px; color: #fff; font-family: monospace; font-size: 12px; user-select: all; margin-top: 10px; }
   </style>
 </head>
 <body>
 
   <!-- صفحه لاگین -->
-  <div id="loginSection" class="box">
+  <div id="loginSection" class="box" style="max-width: 400px; margin-top: 50px;">
     <h2>ورود به پنل مدیریت</h2>
-    <p style="text-align: center; color: #aaa; font-size: 14px;">برای امنیت، فقط ادمین‌ها با حساب گوگل وارد شوند.</p>
+    <p style="text-align: center; color: #aaa; font-size: 14px; margin-bottom: 20px;">برای امنیت، فقط ادمین‌ها با حساب گوگل وارد شوند.</p>
     <button class="btn-google" onclick="loginWithGoogle()">ورود با حساب گوگل</button>
   </div>
 
   <!-- داشبورد اصلی (بعد از لاگین) -->
-  <div id="dashboardSection" class="hidden" style="width: 100%; max-width: 600px;">
+  <div id="dashboardSection" class="hidden" style="width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
     
     <!-- بخش آپلود اکسل -->
     <div class="box">
       <h2>آپلود گروهی (Excel)</h2>
-      <p style="font-size: 12px; color: #aaa;">فایل اکسل باید دو ستون داشته باشد: <b>member_name</b> و <b>expiry_date</b> (مثلاً: 2025-12-31)</p>
+      <p style="font-size: 12px; color: #aaa; text-align: center;">فایل اکسل باید دو ستون داشته باشد: <b>member_name</b> و <b>expiry_date</b> (مثلاً: 2026-12-31)</p>
       <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
       <button onclick="uploadExcel()">پردازش و افزودن اعضا</button>
-      <div id="excelResult" style="margin-top: 15px; font-size: 13px; color: #81c784;"></div>
+      <div id="excelResult" style="margin-top: 15px; font-size: 13px; color: #81c784; text-align: center;"></div>
     </div>
 
     <!-- بخش ثبت تکی -->
@@ -58,7 +60,7 @@
       <input type="date" id="expiryDate">
       <button onclick="registerMember()">ثبت و ساخت لینک کارت</button>
       <div class="result" id="resultBox">
-        <p>✅ لینک کارت NFC (کپی کنید):</p>
+        <p>✅ لینک کارت NFC (این لینک را کپی کنید و در NFC Tools روی کارت بنویسید):</p>
         <div class="link-box" id="finalLink"></div>
       </div>
     </div>
@@ -78,19 +80,25 @@
               <th>عملیات</th>
             </tr>
           </thead>
-          <tbody id="tableBody"></tbody>
+          <tbody id="tableBody">
+            <!-- ردیف‌ها توسط جاوااسکریپت اضافه می‌شوند -->
+          </tbody>
         </table>
       </div>
     </div>
 
-    <button onclick="logout()" style="background: #444; margin-bottom: 30px;">خروج از حساب</button>
+    <button class="btn-logout" onclick="logout()">خروج از حساب</button>
   </div>
 
+  <!-- کتابخانه Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script>
-    // ⚠️ اینجا را پر کنید
-    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    // ⚠️ مقادیر اختصاصی پروژه شما
+    const SUPABASE_URL = 'https://aykilcqlydloxmvgjuwj.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_WPN3BAGfDaSu9i5K4pnUhw_Mzqv0_7r';
+    
+    // ساخت کلاینت
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // بررسی وضعیت لاگین بودن کاربر هنگام باز شدن صفحه
@@ -99,38 +107,55 @@
       if (session) {
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('dashboardSection').classList.remove('hidden');
+        searchMembers(); // لود اولیه جدول
+      } else {
+        document.getElementById('loginSection').classList.remove('hidden');
+        document.getElementById('dashboardSection').classList.add('hidden');
       }
     }
+    
+    // اجرای اولیه
     checkAuth();
 
     // ورود با گوگل
     async function loginWithGoogle() {
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.href }
+        options: { 
+          redirectTo: window.location.href // برگشت به همین صفحه پس از لاگین
+        }
       });
-      if (error) alert(error.message);
+      if (error) alert('خطا در ورود: ' + error.message);
     }
 
-    // خروج
+    // خروج از حساب
     async function logout() {
       await client.auth.signOut();
       window.location.reload();
     }
 
-    // ثبت تکی (همان قبلی)
+    // ثبت تکی
     async function registerMember() {
       const name = document.getElementById('memberName').value;
       const date = document.getElementById('expiryDate').value;
-      if(!name || !date) return alert('نام و تاریخ را وارد کنید');
+      if(!name || !date) return alert('لطفاً نام و تاریخ را وارد کنید');
 
       const { data, error } = await client.from('members').insert([{ member_name: name, expiry_date: date }]).select();
-      if (error) return alert('خطا: ' + error.message);
+      if (error) return alert('خطا در ثبت: ' + error.message);
 
       const token = data[0].token;
-      const link = window.location.href.replace('admin.html', '') + `?token=${token}`;
+      // ساخت لینک نهایی برای نوشتن روی کارت
+      const baseUrl = window.location.href.replace('admin.html', '');
+      const link = baseUrl + `?token=${token}`;
+      
       document.getElementById('finalLink').textContent = link;
       document.getElementById('resultBox').style.display = 'block';
+      
+      // پاک کردن فیلدها
+      document.getElementById('memberName').value = '';
+      document.getElementById('expiryDate').value = '';
+      
+      searchMembers(); // آپدیت جدول
     }
 
     // 🚀 آپلود و پردازش فایل اکسل
@@ -148,18 +173,21 @@
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+          
           // تبدیل اکسل به JSON
           const json = XLSX.utils.sheet_to_json(firstSheet);
           
-          if (json.length === 0) throw new Error('فایل خالی است');
+          if (json.length === 0) throw new Error('فایل خالی است یا فرمت درستی ندارد');
 
-          // آماده‌سازی داده‌ها برای درج در دیتابیس
+          // آماده‌سازی داده‌ها (هم انگلیسی و هم فارسی را پشتیبانی می‌کند)
           const membersToInsert = json.map(row => ({
-            member_name: row.member_name || row['نام'],
-            expiry_date: row.expiry_date || row['تاریخ انقضا']
-          })).filter(m => m.member_name && m.expiry_date); // فقط ردیف‌های معتبر
+            member_name: row.member_name || row['نام'] || row['نام و نام خانوادگی'],
+            expiry_date: row.expiry_date || row['تاریخ انقضا'] || row['تاریخ']
+          })).filter(m => m.member_name && m.expiry_date); 
 
-          resultEl.textContent = `در حال افزودن ${membersToInsert.length} عضو...`;
+          if (membersToInsert.length === 0) throw new Error('ستون‌های فایل با سیستم همخوانی ندارد');
+
+          resultEl.textContent = `در حال افزودن ${membersToInsert.length} عضو به دیتابیس...`;
 
           // درج دسته‌جمعی در Supabase
           const { error } = await client.from('members').insert(membersToInsert);
@@ -170,7 +198,7 @@
           searchMembers(); // آپدیت جدول
 
         } catch (err) {
-          resultEl.textContent = '❌ خطا در پردازش فایل: ' + err.message;
+          resultEl.textContent = '❌ خطا: ' + err.message;
         }
       };
       reader.readAsArrayBuffer(file);
@@ -181,9 +209,8 @@
       const query = document.getElementById('searchName').value;
       const tbody = document.getElementById('tableBody');
 
-      // اگر خالی بود، همه را بیاور (تا ۱۰ نفر)
+      // اگر خالی بود، ۱۰ نفر آخر را بیاور، اگر متن داشت جستجو کن
       let dbQuery = client.from('members').select('*').order('created_at', { ascending: false }).limit(10);
-      
       if (query) {
         dbQuery = client.from('members').select('*').ilike('member_name', `%${query}%`).limit(20);
       }
@@ -199,29 +226,28 @@
 
       data.forEach(member => {
         const tr = document.createElement('tr');
+        // اگر تاریخ خالی بود علامت سوال بگذارد
+        const expDate = member.expiry_date ? member.expiry_date : 'نامشخص';
         tr.innerHTML = `
           <td>${member.member_name || 'بدون نام'}</td>
-          <td>${member.remaining_sessions}</td>
-          <td>${member.expiry_date}</td>
+          <td style="color: #ff6a00; font-weight: bold;">${member.remaining_sessions}</td>
+          <td style="direction: ltr; text-align: right;">${expDate}</td>
           <td><button class="btn-deduct" onclick="deductManualSession('${member.id}', ${member.remaining_sessions})">منهای ۱</button></td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // کم کردن دستی جلسه (بدون رفرش)
+    // کم کردن دستی جلسه
     async function deductManualSession(id, currentSessions) {
       if (currentSessions <= 0) return alert('این عضو جلسه‌ای ندارد!');
 
       const { error } = await client.from('members').update({ remaining_sessions: currentSessions - 1 }).eq('id', id);
       if (error) return alert('خطا در ثبت');
       
-      // آپدیت جدول
+      // آپدیت زنده جدول بدون رفرش صفحه
       searchMembers();
     }
-
-    // لود اولیه جدول
-    searchMembers();
   </script>
 </body>
 </html>
