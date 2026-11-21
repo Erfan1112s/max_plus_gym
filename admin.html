@@ -4,7 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>پنل مدیریت باشگاه مکس پلاس</title>
+  
+  <!-- کتابخانه خواندن اکسل -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  
+  <!-- کتابخانه تبدیل تاریخ شمسی و میلادی -->
+  <script src="https://cdn.jsdelivr.net/npm/jalaali-js@1.2.6/dist/jalaali.min.js"></script>
+
   <style>
     body { font-family: Tahoma, sans-serif; background: #121212; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
     .hidden { display: none !important; }
@@ -12,6 +18,7 @@
     h2 { color: #ff6a00; text-align: center; margin-bottom: 20px; margin-top: 0; }
     label { display: block; margin-top: 15px; color: #aaa; font-size: 14px; }
     input[type="text"], input[type="date"], input[type="number"], input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
+    .hint { font-size: 11px; color: #888; margin-top: 4px; display: block; }
     button { width: 100%; padding: 12px; margin-top: 20px; background: #ff6a00; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
     button:hover { background: #e65c00; }
     .btn-google { background: #4285F4; margin-top: 0; }
@@ -51,6 +58,7 @@
     <div class="box">
       <h2>آپلود گروهی (Excel)</h2>
       <p style="font-size: 12px; color: #aaa; text-align: center;">ستون‌ها: <b>member_name</b> ، <b>phone_number</b> ، <b>expiry_date</b> ، <b>remaining_sessions</b> (اختیاری)</p>
+      <span class="hint" style="text-align:center; margin-bottom: 10px;">تاریخ اکسل می‌تواند شمسی (1403/08/12) یا میلادی (2024-11-02) باشد.</span>
       <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
       <button onclick="uploadExcel()">پردازش و افزودن اعضا</button>
       <div id="excelResult" style="margin-top: 15px; font-size: 13px; color: #81c784; text-align: center;"></div>
@@ -65,8 +73,9 @@
       <label>شماره موبایل:</label>
       <input type="text" id="phoneNumber" placeholder="09123456789">
 
-      <label>تاریخ انقضا:</label>
-      <input type="date" id="expiryDate">
+      <label>تاریخ انقضا (شمسی):</label>
+      <input type="text" id="expiryDate" placeholder="1403/12/29">
+      <span class="hint">مثال: 1403/12/29 (سال/ماه/روز)</span>
 
       <label>تعداد جلسات:</label>
       <input type="number" id="sessionsInput" value="12" min="0">
@@ -89,7 +98,7 @@
             <th>نام</th>
             <th>موبایل</th>
             <th>جلسات</th>
-            <th>انقضا</th>
+            <th>انقضا (شمسی)</th>
             <th>عملیات</th>
           </tr>
         </thead>
@@ -109,6 +118,35 @@
     const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
       auth: { flowType: 'pkce', detectSessionInUrl: true }
     });
+
+    // 🗓️ توابع تبدیل تاریخ
+    function toGregorian(persianStr) {
+      // تبدیل "1403/08/12" به "2024-11-02"
+      if (!persianStr) return null;
+      const parts = persianStr.replace(/-/g, '/').split('/');
+      if (parts.length !== 3) return null;
+      
+      const jy = parseInt(parts[0]), jm = parseInt(parts[1]), jd = parseInt(parts[2]);
+      if (isNaN(jy) || isNaN(jm) || isNaN(jd)) return null;
+
+      const g = jalaali.toGregorian(jy, jm, jd);
+      if (!g.gy) return null;
+      
+      return `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
+    }
+
+    function toPersian(gregorianStr) {
+      // تبدیل "2024-11-02" به "1403/08/12"
+      if (!gregorianStr) return 'نامشخص';
+      const parts = gregorianStr.split('-');
+      if (parts.length !== 3) return gregorianStr;
+      
+      const gy = parseInt(parts[0]), gm = parseInt(parts[1]), gd = parseInt(parts[2]);
+      const j = jalaali.toJalaali(gy, gm, gd);
+      if (!j.jy) return gregorianStr;
+
+      return `${j.jy}/${String(j.jm).padStart(2, '0')}/${String(j.jd).padStart(2, '0')}`;
+    }
 
     async function checkAuth() {
       const { data: { session } } = await client.auth.getSession();
@@ -140,12 +178,15 @@
     async function registerMember() {
       const name = document.getElementById('memberName').value;
       const phone = document.getElementById('phoneNumber').value;
-      const date = document.getElementById('expiryDate').value;
-      // اعتبارسنجی تعداد جلسات (حداقل صفر)
+      const datePersian = document.getElementById('expiryDate').value;
+      
       let sessions = parseInt(document.getElementById('sessionsInput').value);
       if (isNaN(sessions) || sessions < 0) sessions = 0;
       
-      if(!name || !date) return alert('لطفاً نام و تاریخ را وارد کنید');
+      if(!name || !datePersian) return alert('لطفاً نام و تاریخ را وارد کنید');
+      
+      const dateGregorian = toGregorian(datePersian);
+      if (!dateGregorian) return alert('فرمت تاریخ شمسی اشتباه است. (مثال صحیح: 1403/12/29)');
 
       const newToken = crypto.randomUUID(); 
 
@@ -153,7 +194,7 @@
         token: newToken,
         member_name: name, 
         phone_number: phone,
-        expiry_date: date,
+        expiry_date: dateGregorian,
         remaining_sessions: sessions
       }]);
       
@@ -196,17 +237,21 @@
           const membersToInsert = json.map(row => {
             let rowSessions = parseInt(row.remaining_sessions || row['جلسات'] || 12);
             if (isNaN(rowSessions) || rowSessions < 0) rowSessions = 0;
+            
+            // اگر تاریخ در اکسل شمسی بود تبدیل کن، وگرنه همان میلادی را بگذار
+            let rawDate = String(row.expiry_date || row['تاریخ انقضا'] || row['تاریخ'] || '');
+            let finalDate = rawDate.includes('/') ? toGregorian(rawDate) : rawDate;
 
             return {
               token: crypto.randomUUID(),
               member_name: row.member_name || row['نام'] || row['نام و نام خانوادگی'],
               phone_number: row.phone_number || row['موبایل'] || row['شماره تماس'],
-              expiry_date: row.expiry_date || row['تاریخ انقضا'] || row['تاریخ'],
+              expiry_date: finalDate,
               remaining_sessions: rowSessions
             }
           }).filter(m => m.member_name && m.expiry_date); 
 
-          if (membersToInsert.length === 0) throw new Error('ستون‌های نام و تاریخ پیدا نشد');
+          if (membersToInsert.length === 0) throw new Error('داده‌های معتبری پیدا نشد (حتماً نام و تاریخ را بررسی کنید)');
 
           resultEl.textContent = `در حال افزودن ${membersToInsert.length} عضو...`;
           const { error } = await client.from('members').insert(membersToInsert);
@@ -230,7 +275,6 @@
 
       let dbQuery = client.from('members').select('*').order('created_at', { ascending: false }).limit(10);
       if (query) {
-        // جستجو هم در نام و هم در شماره موبایل
         dbQuery = client.from('members').select('*').or(`member_name.ilike.%${query}%,phone_number.ilike.%${query}%`).limit(20);
       }
 
@@ -245,19 +289,20 @@
 
       data.forEach(member => {
         const tr = document.createElement('tr');
-        const expDate = member.expiry_date ? member.expiry_date : 'نامشخص';
+        // تاریخ دیتابیس (میلادی) را به شمسی تبدیل می‌کنیم تا در جدول نشان دهیم
+        const expDatePersian = toPersian(member.expiry_date);
+        
         const phone = member.phone_number ? member.phone_number : '---';
         const name = member.member_name || 'بدون نام';
         
-        // قرار دادن دکمه‌های ویرایش، حذف و کم کردن دستی
         tr.innerHTML = `
           <td>${name}</td>
           <td style="direction: ltr; text-align: right;">${phone}</td>
           <td style="color: #ff6a00; font-weight: bold;">${member.remaining_sessions}</td>
-          <td style="direction: ltr; text-align: right;">${expDate}</td>
+          <td>${expDatePersian}</td>
           <td>
             <button class="btn-action btn-deduct" onclick="deductManualSession('${member.id}', ${member.remaining_sessions})">منهای ۱</button>
-            <button class="btn-action btn-edit" onclick="editMember('${member.id}', '${name}', '${phone}', ${member.remaining_sessions}, '${expDate}')">ویرایش</button>
+            <button class="btn-action btn-edit" onclick="editMember('${member.id}', '${name}', '${phone}', ${member.remaining_sessions}, '${member.expiry_date}')">ویرایش</button>
             <button class="btn-action btn-delete" onclick="deleteMember('${member.id}', '${name}')">حذف</button>
           </td>
         `;
@@ -266,59 +311,55 @@
     }
 
     // 🚀 ویرایش کامل کاربر
-    async function editMember(id, currentName, currentPhone, currentSessions, currentDate) {
-      // گرفتن اطلاعات جدید از طریق پاپ‌آپ
-      const newName = prompt("نام و نام خانوادگی جدید را وارد کنید:", currentName);
-      if (newName === null) return; // اگر کاربر لغو کرد، متوقف شو
+    async function editMember(id, currentName, currentPhone, currentSessions, currentDateGregorian) {
+      const currentDatePersian = toPersian(currentDateGregorian);
 
-      const newPhone = prompt("شماره موبایل جدید را وارد کنید:", currentPhone === '---' ? '' : currentPhone);
+      const newName = prompt("نام و نام خانوادگی جدید:", currentName);
+      if (newName === null) return;
+
+      const newPhone = prompt("شماره موبایل جدید:", currentPhone === '---' ? '' : currentPhone);
       if (newPhone === null) return;
 
-      const newSessions = prompt("تعداد جلسات جدید را وارد کنید:", currentSessions);
+      const newSessions = prompt("تعداد جلسات جدید:", currentSessions);
       if (newSessions === null) return;
 
-      const newDate = prompt("تاریخ انقضای جدید (مثلاً 2026-12-31):", currentDate === 'نامشخص' ? '' : currentDate);
-      if (newDate === null) return;
+      const newDatePersian = prompt("تاریخ انقضای جدید (شمسی - مثال: 1403/12/29):", currentDatePersian === 'نامشخص' ? '' : currentDatePersian);
+      if (newDatePersian === null) return;
 
-      // اعتبارسنجی تعداد جلسات
       let parsedSessions = parseInt(newSessions);
       if (isNaN(parsedSessions) || parsedSessions < 0) parsedSessions = 0;
 
-      // آپدیت در دیتابیس
+      const newDateGregorian = toGregorian(newDatePersian);
+      if (!newDateGregorian) return alert('فرمت تاریخ شمسی اشتباه است.');
+
       const { error } = await client.from('members').update({
         member_name: newName,
         phone_number: newPhone,
         remaining_sessions: parsedSessions,
-        expiry_date: newDate
+        expiry_date: newDateGregorian // به میلادی تبدیل شده و ذخیره می‌شود
       }).eq('id', id);
 
       if (error) {
         alert('خطا در ویرایش: ' + error.message);
       } else {
         alert('✅ اطلاعات با موفقیت به‌روزرسانی شد.');
-        searchMembers(); // رفرش جدول
+        searchMembers(); 
       }
     }
 
-    // 🚀 حذف کاربر
+    // حذف کاربر
     async function deleteMember(id, name) {
-      if (!confirm(`آیا از حذف "${name}" مطمئن هستید؟ این کار قابل بازگشت نیست.`)) return;
-
+      if (!confirm(`آیا از حذف "${name}" مطمئن هستید؟`)) return;
       const { error } = await client.from('members').delete().eq('id', id);
-      if (error) {
-        alert('خطا در حذف: ' + error.message);
-      } else {
-        searchMembers(); // رفرش جدول
-      }
+      if (error) alert('خطا در حذف: ' + error.message);
+      else searchMembers();
     }
 
-    // کم کردن دستی یک جلسه (با محافظت از منفی شدن)
+    // کم کردن دستی جلسه
     async function deductManualSession(id, currentSessions) {
       if (currentSessions <= 0) return alert('این عضو جلسه‌ای ندارد!');
-      
       const { error } = await client.from('members').update({ remaining_sessions: currentSessions - 1 }).eq('id', id);
       if (error) return alert('خطا در ثبت');
-      
       searchMembers();
     }
   </script>
