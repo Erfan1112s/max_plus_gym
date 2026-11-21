@@ -4,21 +4,28 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>پنل مدیریت باشگاه مکس پلاس</title>
-  <!-- کتابخانه خواندن فایل اکسل (SheetJS) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <style>
     body { font-family: Tahoma, sans-serif; background: #121212; color: white; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
     .hidden { display: none !important; }
-    .box { background: #1e1e1e; padding: 30px; border-radius: 15px; width: 100%; max-width: 600px; border: 1px solid #333; margin-bottom: 20px; box-sizing: border-box; }
+    .box { background: #1e1e1e; padding: 30px; border-radius: 15px; width: 100%; max-width: 750px; border: 1px solid #333; margin-bottom: 20px; box-sizing: border-box; }
     h2 { color: #ff6a00; text-align: center; margin-bottom: 20px; margin-top: 0; }
     label { display: block; margin-top: 15px; color: #aaa; font-size: 14px; }
-    input[type="text"], input[type="date"], input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
+    input[type="text"], input[type="date"], input[type="number"], input[type="file"] { width: 100%; padding: 10px; margin-top: 5px; border-radius: 8px; border: 1px solid #444; background: #2a2a2a; color: white; box-sizing: border-box; }
     button { width: 100%; padding: 12px; margin-top: 20px; background: #ff6a00; color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.2s; }
     button:hover { background: #e65c00; }
     .btn-google { background: #4285F4; margin-top: 0; }
     .btn-google:hover { background: #3367d6; }
-    .btn-deduct { background: #d32f2f; padding: 8px; font-size: 12px; margin: 0; width: auto; }
-    .btn-deduct:hover { background: #b71c1c; }
+    
+    /* دکمه‌های عملیات جدول */
+    .btn-action { padding: 6px 12px; font-size: 12px; margin: 2px; width: auto; border-radius: 5px; }
+    .btn-edit { background: #1976d2; }
+    .btn-edit:hover { background: #1565c0; }
+    .btn-delete { background: #d32f2f; }
+    .btn-delete:hover { background: #b71c1c; }
+    .btn-deduct { background: #f57c00; }
+    .btn-deduct:hover { background: #e65100; }
+    
     .btn-logout { background: #444; margin-bottom: 30px; width: auto; padding: 10px 30px; }
     .btn-logout:hover { background: #222; }
     
@@ -32,133 +39,142 @@
 </head>
 <body>
 
-  <!-- صفحه لاگین -->
   <div id="loginSection" class="box" style="max-width: 400px; margin-top: 50px;">
     <h2>ورود به پنل مدیریت</h2>
     <p style="text-align: center; color: #aaa; font-size: 14px; margin-bottom: 20px;">برای امنیت، فقط ادمین‌ها با حساب گوگل وارد شوند.</p>
     <button class="btn-google" onclick="loginWithGoogle()">ورود با حساب گوگل</button>
   </div>
 
-  <!-- داشبورد اصلی (بعد از لاگین) -->
-  <div id="dashboardSection" class="hidden" style="width: 100%; max-width: 600px; display: flex; flex-direction: column; align-items: center;">
+  <div id="dashboardSection" class="hidden" style="width: 100%; max-width: 750px; display: flex; flex-direction: column; align-items: center;">
     
-    <!-- بخش آپلود اکسل -->
+    <!-- آپلود اکسل -->
     <div class="box">
       <h2>آپلود گروهی (Excel)</h2>
-      <p style="font-size: 12px; color: #aaa; text-align: center;">فایل اکسل باید دو ستون داشته باشد: <b>member_name</b> و <b>expiry_date</b> (مثلاً: 2026-12-31)</p>
+      <p style="font-size: 12px; color: #aaa; text-align: center;">ستون‌ها: <b>member_name</b> ، <b>phone_number</b> ، <b>expiry_date</b> ، <b>remaining_sessions</b> (اختیاری)</p>
       <input type="file" id="excelFile" accept=".xlsx, .xls, .csv">
       <button onclick="uploadExcel()">پردازش و افزودن اعضا</button>
       <div id="excelResult" style="margin-top: 15px; font-size: 13px; color: #81c784; text-align: center;"></div>
     </div>
 
-    <!-- بخش ثبت تکی -->
+    <!-- ثبت تکی -->
     <div class="box">
-      <h2>ثبت عضو جدید (تکی)</h2>
+      <h2>ثبت عضو جدید</h2>
       <label>نام و نام خانوادگی:</label>
       <input type="text" id="memberName" placeholder="مثلاً: علی رضایی">
+      
+      <label>شماره موبایل:</label>
+      <input type="text" id="phoneNumber" placeholder="09123456789">
+
       <label>تاریخ انقضا:</label>
       <input type="date" id="expiryDate">
+
+      <label>تعداد جلسات:</label>
+      <input type="number" id="sessionsInput" value="12" min="0">
+      
       <button onclick="registerMember()">ثبت و ساخت لینک کارت</button>
       <div class="result" id="resultBox">
-        <p>✅ لینک کارت NFC (این لینک را کپی کنید و در NFC Tools روی کارت بنویسید):</p>
+        <p>✅ لینک کارت NFC:</p>
         <div class="link-box" id="finalLink"></div>
       </div>
     </div>
 
-    <!-- بخش جستجو و مدیریت -->
+    <!-- مدیریت اعضا -->
     <div class="box">
       <h2>مدیریت اعضا</h2>
-      <label>جستجوی نام عضو:</label>
-      <input type="text" id="searchName" onkeyup="searchMembers()" placeholder="تایپ کنید تا جستجو شود...">
-      <div id="searchResults">
-        <table id="membersTable">
-          <thead>
-            <tr>
-              <th>نام</th>
-              <th>جلسات</th>
-              <th>انقضا</th>
-              <th>عملیات</th>
-            </tr>
-          </thead>
-          <tbody id="tableBody">
-            <!-- ردیف‌ها توسط جاوااسکریپت اضافه می‌شوند -->
-          </tbody>
-        </table>
-      </div>
+      <label>جستجوی نام یا شماره موبایل:</label>
+      <input type="text" id="searchName" onkeyup="searchMembers()" placeholder="تایپ کنید...">
+      <table id="membersTable">
+        <thead>
+          <tr>
+            <th>نام</th>
+            <th>موبایل</th>
+            <th>جلسات</th>
+            <th>انقضا</th>
+            <th>عملیات</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
     </div>
 
     <button class="btn-logout" onclick="logout()">خروج از حساب</button>
   </div>
 
-  <!-- کتابخانه Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <script>
-    // ⚠️ مقادیر اختصاصی پروژه شما
     const SUPABASE_URL = 'https://aykilcqlydloxmvgjuwj.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_WPN3BAGfDaSu9i5K4pnUhw_Mzqv0_7r';
     
-    // ساخت کلاینت
-    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: { flowType: 'pkce', detectSessionInUrl: true }
+    });
 
-    // بررسی وضعیت لاگین بودن کاربر هنگام باز شدن صفحه
     async function checkAuth() {
       const { data: { session } } = await client.auth.getSession();
       if (session) {
         document.getElementById('loginSection').classList.add('hidden');
         document.getElementById('dashboardSection').classList.remove('hidden');
-        searchMembers(); // لود اولیه جدول
+        searchMembers();
       } else {
         document.getElementById('loginSection').classList.remove('hidden');
         document.getElementById('dashboardSection').classList.add('hidden');
       }
     }
-    
-    // اجرای اولیه
     checkAuth();
 
-    // ورود با گوگل
     async function loginWithGoogle() {
       const { error } = await client.auth.signInWithOAuth({
         provider: 'google',
-        options: { 
-          redirectTo: window.location.href // برگشت به همین صفحه پس از لاگین
-        }
+        options: { redirectTo: 'https://erfan1112s.github.io/max_plus_gym/admin.html' }
       });
       if (error) alert('خطا در ورود: ' + error.message);
     }
 
-    // خروج از حساب
     async function logout() {
       await client.auth.signOut();
       window.location.reload();
     }
 
-    // ثبت تکی
+    // ثبت عضو جدید
     async function registerMember() {
       const name = document.getElementById('memberName').value;
+      const phone = document.getElementById('phoneNumber').value;
       const date = document.getElementById('expiryDate').value;
+      // اعتبارسنجی تعداد جلسات (حداقل صفر)
+      let sessions = parseInt(document.getElementById('sessionsInput').value);
+      if (isNaN(sessions) || sessions < 0) sessions = 0;
+      
       if(!name || !date) return alert('لطفاً نام و تاریخ را وارد کنید');
 
-      const { data, error } = await client.from('members').insert([{ member_name: name, expiry_date: date }]).select();
+      const newToken = crypto.randomUUID(); 
+
+      const { error } = await client.from('members').insert([{ 
+        token: newToken,
+        member_name: name, 
+        phone_number: phone,
+        expiry_date: date,
+        remaining_sessions: sessions
+      }]);
+      
       if (error) return alert('خطا در ثبت: ' + error.message);
 
-      const token = data[0].token;
-      // ساخت لینک نهایی برای نوشتن روی کارت
       const baseUrl = window.location.href.replace('admin.html', '');
-      const link = baseUrl + `?token=${token}`;
+      const link = baseUrl + `?token=${newToken}`;
       
       document.getElementById('finalLink').textContent = link;
       document.getElementById('resultBox').style.display = 'block';
       
-      // پاک کردن فیلدها
+      // پاکسازی فرم
       document.getElementById('memberName').value = '';
+      document.getElementById('phoneNumber').value = '';
       document.getElementById('expiryDate').value = '';
+      document.getElementById('sessionsInput').value = '12';
       
-      searchMembers(); // آپدیت جدول
+      searchMembers(); 
     }
 
-    // 🚀 آپلود و پردازش فایل اکسل
+    // آپلود اکسل
     async function uploadExcel() {
       const fileInput = document.getElementById('excelFile');
       const file = fileInput.files[0];
@@ -173,29 +189,32 @@
           const data = new Uint8Array(e.target.result);
           const workbook = XLSX.read(data, { type: 'array' });
           const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-          
-          // تبدیل اکسل به JSON
           const json = XLSX.utils.sheet_to_json(firstSheet);
           
-          if (json.length === 0) throw new Error('فایل خالی است یا فرمت درستی ندارد');
+          if (json.length === 0) throw new Error('فایل خالی است');
 
-          // آماده‌سازی داده‌ها (هم انگلیسی و هم فارسی را پشتیبانی می‌کند)
-          const membersToInsert = json.map(row => ({
-            member_name: row.member_name || row['نام'] || row['نام و نام خانوادگی'],
-            expiry_date: row.expiry_date || row['تاریخ انقضا'] || row['تاریخ']
-          })).filter(m => m.member_name && m.expiry_date); 
+          const membersToInsert = json.map(row => {
+            let rowSessions = parseInt(row.remaining_sessions || row['جلسات'] || 12);
+            if (isNaN(rowSessions) || rowSessions < 0) rowSessions = 0;
 
-          if (membersToInsert.length === 0) throw new Error('ستون‌های فایل با سیستم همخوانی ندارد');
+            return {
+              token: crypto.randomUUID(),
+              member_name: row.member_name || row['نام'] || row['نام و نام خانوادگی'],
+              phone_number: row.phone_number || row['موبایل'] || row['شماره تماس'],
+              expiry_date: row.expiry_date || row['تاریخ انقضا'] || row['تاریخ'],
+              remaining_sessions: rowSessions
+            }
+          }).filter(m => m.member_name && m.expiry_date); 
 
-          resultEl.textContent = `در حال افزودن ${membersToInsert.length} عضو به دیتابیس...`;
+          if (membersToInsert.length === 0) throw new Error('ستون‌های نام و تاریخ پیدا نشد');
 
-          // درج دسته‌جمعی در Supabase
+          resultEl.textContent = `در حال افزودن ${membersToInsert.length} عضو...`;
           const { error } = await client.from('members').insert(membersToInsert);
           if (error) throw error;
 
-          resultEl.textContent = `✅ ${membersToInsert.length} عضو با موفقیت اضافه شدند!`;
-          fileInput.value = ''; // پاک کردن فایل
-          searchMembers(); // آپدیت جدول
+          resultEl.textContent = `✅ ${membersToInsert.length} عضو اضافه شدند!`;
+          fileInput.value = '';
+          searchMembers(); 
 
         } catch (err) {
           resultEl.textContent = '❌ خطا: ' + err.message;
@@ -204,15 +223,15 @@
       reader.readAsArrayBuffer(file);
     }
 
-    // 🚀 جستجوی زنده کاربران
+    // جستجو و نمایش لیست
     async function searchMembers() {
       const query = document.getElementById('searchName').value;
       const tbody = document.getElementById('tableBody');
 
-      // اگر خالی بود، ۱۰ نفر آخر را بیاور، اگر متن داشت جستجو کن
       let dbQuery = client.from('members').select('*').order('created_at', { ascending: false }).limit(10);
       if (query) {
-        dbQuery = client.from('members').select('*').ilike('member_name', `%${query}%`).limit(20);
+        // جستجو هم در نام و هم در شماره موبایل
+        dbQuery = client.from('members').select('*').or(`member_name.ilike.%${query}%,phone_number.ilike.%${query}%`).limit(20);
       }
 
       const { data, error } = await dbQuery;
@@ -220,32 +239,86 @@
 
       tbody.innerHTML = '';
       if (data.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">عضوی پیدا نشد</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">عضوی پیدا نشد</td></tr>';
         return;
       }
 
       data.forEach(member => {
         const tr = document.createElement('tr');
-        // اگر تاریخ خالی بود علامت سوال بگذارد
         const expDate = member.expiry_date ? member.expiry_date : 'نامشخص';
+        const phone = member.phone_number ? member.phone_number : '---';
+        const name = member.member_name || 'بدون نام';
+        
+        // قرار دادن دکمه‌های ویرایش، حذف و کم کردن دستی
         tr.innerHTML = `
-          <td>${member.member_name || 'بدون نام'}</td>
+          <td>${name}</td>
+          <td style="direction: ltr; text-align: right;">${phone}</td>
           <td style="color: #ff6a00; font-weight: bold;">${member.remaining_sessions}</td>
           <td style="direction: ltr; text-align: right;">${expDate}</td>
-          <td><button class="btn-deduct" onclick="deductManualSession('${member.id}', ${member.remaining_sessions})">منهای ۱</button></td>
+          <td>
+            <button class="btn-action btn-deduct" onclick="deductManualSession('${member.id}', ${member.remaining_sessions})">منهای ۱</button>
+            <button class="btn-action btn-edit" onclick="editMember('${member.id}', '${name}', '${phone}', ${member.remaining_sessions}, '${expDate}')">ویرایش</button>
+            <button class="btn-action btn-delete" onclick="deleteMember('${member.id}', '${name}')">حذف</button>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
-    // کم کردن دستی جلسه
+    // 🚀 ویرایش کامل کاربر
+    async function editMember(id, currentName, currentPhone, currentSessions, currentDate) {
+      // گرفتن اطلاعات جدید از طریق پاپ‌آپ
+      const newName = prompt("نام و نام خانوادگی جدید را وارد کنید:", currentName);
+      if (newName === null) return; // اگر کاربر لغو کرد، متوقف شو
+
+      const newPhone = prompt("شماره موبایل جدید را وارد کنید:", currentPhone === '---' ? '' : currentPhone);
+      if (newPhone === null) return;
+
+      const newSessions = prompt("تعداد جلسات جدید را وارد کنید:", currentSessions);
+      if (newSessions === null) return;
+
+      const newDate = prompt("تاریخ انقضای جدید (مثلاً 2026-12-31):", currentDate === 'نامشخص' ? '' : currentDate);
+      if (newDate === null) return;
+
+      // اعتبارسنجی تعداد جلسات
+      let parsedSessions = parseInt(newSessions);
+      if (isNaN(parsedSessions) || parsedSessions < 0) parsedSessions = 0;
+
+      // آپدیت در دیتابیس
+      const { error } = await client.from('members').update({
+        member_name: newName,
+        phone_number: newPhone,
+        remaining_sessions: parsedSessions,
+        expiry_date: newDate
+      }).eq('id', id);
+
+      if (error) {
+        alert('خطا در ویرایش: ' + error.message);
+      } else {
+        alert('✅ اطلاعات با موفقیت به‌روزرسانی شد.');
+        searchMembers(); // رفرش جدول
+      }
+    }
+
+    // 🚀 حذف کاربر
+    async function deleteMember(id, name) {
+      if (!confirm(`آیا از حذف "${name}" مطمئن هستید؟ این کار قابل بازگشت نیست.`)) return;
+
+      const { error } = await client.from('members').delete().eq('id', id);
+      if (error) {
+        alert('خطا در حذف: ' + error.message);
+      } else {
+        searchMembers(); // رفرش جدول
+      }
+    }
+
+    // کم کردن دستی یک جلسه (با محافظت از منفی شدن)
     async function deductManualSession(id, currentSessions) {
       if (currentSessions <= 0) return alert('این عضو جلسه‌ای ندارد!');
-
+      
       const { error } = await client.from('members').update({ remaining_sessions: currentSessions - 1 }).eq('id', id);
       if (error) return alert('خطا در ثبت');
       
-      // آپدیت زنده جدول بدون رفرش صفحه
       searchMembers();
     }
   </script>
