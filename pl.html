@@ -1,0 +1,107 @@
+from pathlib import Path
+
+html = r'''<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#090909">
+  <meta name="description" content="کارت دیجیتال Max Plus Gym؛ راه ارتباط سریع با باشگاه.">
+  <title>MAX PLUS GYM | Digital Card</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap');
+    :root{--orange:#ff711e;--orange-light:#ff9a52;--black:#090909;--card:#151515;--muted:#969696;--line:rgba(255,255,255,.1);font-family:'Vazirmatn',Tahoma,sans-serif}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100svh;color:#f7f7f7;background:radial-gradient(ellipse at 50% 0%,#51230e55,transparent 48%),var(--black);display:flex;justify-content:center;align-items:center;padding:28px 16px;overflow-x:hidden}
+    body:before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.18;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:38px 38px;mask-image:linear-gradient(to bottom,black,transparent 80%)}
+    .card{width:min(100%,420px);position:relative;z-index:1;background:linear-gradient(155deg,#1b1b1b,#101010 62%);border:1px solid #ffffff17;border-radius:25px;overflow:hidden;box-shadow:0 30px 100px #000b,0 0 55px #ff711e12}
+    .top-accent{height:4px;background:linear-gradient(90deg,transparent,var(--orange),#ffb16e,var(--orange),transparent)}
+    .inner{padding:35px 27px 27px;text-align:center}
+    .brandline{display:flex;align-items:center;justify-content:center;gap:10px;direction:ltr}
+    .mark{height:55px;width:55px;border:1.5px solid var(--orange);border-radius:15px;display:grid;place-items:center;color:var(--orange);font-size:22px;font-weight:900;letter-spacing:-4px;padding-right:4px;transform:skew(-7deg);box-shadow:0 0 24px #ff711e20}
+    .brand{font-size:17px;font-weight:900;letter-spacing:1px;text-align:left;line-height:1.15}
+    .brand small{display:block;color:#858585;font-size:9px;letter-spacing:3px;margin-top:6px}
+    .orb{width:138px;height:138px;margin:33px auto 20px;border:1px solid #ff711e88;border-radius:50%;display:grid;place-items:center;position:relative;box-shadow:0 0 0 10px #ff711e0b,0 0 45px #ff711e20,inset 0 0 35px #ff711e0c}
+    .orb:before,.orb:after{content:"";position:absolute;border:1px solid #ffffff13;border-radius:50%;inset:12px}
+    .orb:after{inset:25px;border-color:#ff711e40}
+    .orb span{font-size:53px;font-weight:900;letter-spacing:-10px;color:transparent;-webkit-text-stroke:1.5px var(--orange);padding-right:8px;transform:skew(-9deg)}
+    .eyebrow{font-size:10px;color:var(--orange-light);font-weight:800;letter-spacing:2.5px;direction:ltr}
+    h1{font-size:27px;line-height:1.4;margin:7px 0 8px;font-weight:900;direction:ltr}
+    .subtitle{font-size:12px;color:#a6a6a6;margin:0 auto;max-width:280px;line-height:2}
+    .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:25px 0}
+    .actions{display:grid;gap:11px}
+    .action{min-height:57px;border-radius:12px;padding:11px 15px;display:flex;align-items:center;gap:13px;text-align:right;border:1px solid var(--line);background:#1b1b1b;transition:.2s}
+    .action:hover{transform:translateY(-2px);border-color:#ff711e88;background:#211a16}
+    .action.primary{background:linear-gradient(100deg,#ff8a3d,#ff6817);color:#17100b;border:0;box-shadow:0 8px 25px #ff711e22}
+    .action.primary:hover{background:linear-gradient(100deg,#ffa05f,#ff792d)}
+    .ico{width:35px;height:35px;flex:none;border-radius:10px;display:grid;place-items:center;background:#ffffff0c}
+    .primary .ico{background:#ffffff38}
+    .ico svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .action-text{flex:1}
+    .action-text strong{display:block;font-size:13px;font-weight:800}
+    .action-text small{display:block;font-size:10px;opacity:.65;margin-top:1px}
+    .go{font-size:20px;direction:ltr;opacity:.7}
+    .details{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:17px}
+    .detail{border:1px solid var(--line);border-radius:11px;padding:12px 8px;color:#aaa;font-size:10px;min-height:58px}
+    .detail b{display:block;color:#eee;font-size:11px;margin-top:3px}
+    .detail svg{width:15px;height:15px;vertical-align:middle;color:var(--orange);margin-left:4px;stroke:currentColor;fill:none;stroke-width:1.8}
+    .footer{margin-top:25px;color:#666;font-size:9px;letter-spacing:1.5px;direction:ltr}
+    .footer span{color:var(--orange)}
+    .hint{margin:15px 0 0;color:#777;font-size:10px;line-height:1.9}
+    @media(max-width:360px){.inner{padding:28px 19px 23px}.orb{width:120px;height:120px}h1{font-size:24px}}
+  </style>
+</head>
+<body>
+  <main class="card">
+    <div class="top-accent"></div>
+    <div class="inner">
+      <div class="brandline">
+        <div class="mark">MP</div>
+        <div class="brand">MAX PLUS<small>FITNESS CLUB</small></div>
+      </div>
+
+      <div class="orb"><span>MP</span></div>
+      <div class="eyebrow">YOUR FITNESS DESTINATION</div>
+      <h1>MAX PLUS GYM</h1>
+      <p class="subtitle">قدرت، تمرکز، پیشرفت.<br>برای شروع مسیر قوی‌تر شدن، با ما همراه شو.</p>
+
+      <div class="divider"></div>
+
+      <div class="actions">
+        <!-- آدرس واقعی اینستاگرام را در href قرار دهید -->
+        <a class="action primary" href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer">
+          <span class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><path d="M17.5 6.5h.01"/></svg></span>
+          <span class="action-text"><strong>اینستاگرام باشگاه</strong><small>Instagram · صفحه رسمی ما</small></span>
+          <span class="go">↗</span>
+        </a>
+
+        <!-- آدرس واقعی کانال تلگرام را در href قرار دهید -->
+        <a class="action" href="https://t.me/" target="_blank" rel="noopener noreferrer">
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="m21 3-7.2 18-3.7-7.1L3 10.2 21 3Z"/><path d="m10.1 13.9 4.2-4.2"/></svg></span>
+          <span class="action-text"><strong>کانال تلگرام</strong><small>Telegram · اخبار و اطلاع‌رسانی</small></span>
+          <span class="go">↗</span>
+        </a>
+
+        <!-- شماره تماس را جایگزین کنید؛ فرمت بین‌المللی توصیه می‌شود -->
+        <a class="action" href="tel:+980000000000">
+          <span class="ico"><svg viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.4 19.4 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7l.5 3a2 2 0 0 1-.6 1.7L7.7 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 1.7-.6l3 .5a2 2 0 0 1 1.7 2.6Z"/></svg></span>
+          <span class="action-text"><strong>تماس با باشگاه</strong><small>برای دریافت اطلاعات بیشتر</small></span>
+          <span class="go">↗</span>
+        </a>
+      </div>
+
+      <div class="details">
+        <div class="detail"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> آدرس باشگاه <b>آدرس را وارد کنید</b></div>
+        <div class="detail"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ساعات فعالیت <b>ساعات کاری را وارد کنید</b></div>
+      </div>
+
+      <p class="hint">این کارت را ذخیره کن تا همیشه راه ارتباط با Max Plus Gym را داشته باشی.</p>
+      <div class="footer">TRAIN HARD · STAY <span>FOCUSED</span></div>
+    </div>
+  </main>
+</body>
+</html>
+'''
+path = Path("/mnt/data/max-plus-gym-nfc.html")
+path.write_text(html, encoding="utf-8")
+print(f"Created: {path} ({path.stat().st_size:,} bytes)")
