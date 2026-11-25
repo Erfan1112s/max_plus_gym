@@ -1,6 +1,4 @@
-from pathlib import Path
-
-html = r'''<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
@@ -18,19 +16,25 @@ html = r'''<!DOCTYPE html>
     .top-accent{height:4px;background:linear-gradient(90deg,transparent,var(--orange),#ffb16e,var(--orange),transparent)}
     .inner{padding:35px 27px 27px;text-align:center}
     .brandline{display:flex;align-items:center;justify-content:center;gap:10px;direction:ltr}
-    .mark{height:55px;width:55px;border:1.5px solid var(--orange);border-radius:15px;display:grid;place-items:center;color:var(--orange);font-size:22px;font-weight:900;letter-spacing:-4px;padding-right:4px;transform:skew(-7deg);box-shadow:0 0 24px #ff711e20}
+
+    /* ===== لوگوی کوچک (عکس) ===== */
+    .mark-img{height:55px;width:55px;object-fit:contain;border-radius:14px;flex:none}
+
     .brand{font-size:17px;font-weight:900;letter-spacing:1px;text-align:left;line-height:1.15}
     .brand small{display:block;color:#858585;font-size:9px;letter-spacing:3px;margin-top:6px}
+
+    /* ===== لوگوی بزرگ (عکس داخل دایره) ===== */
     .orb{width:138px;height:138px;margin:33px auto 20px;border:1px solid #ff711e88;border-radius:50%;display:grid;place-items:center;position:relative;box-shadow:0 0 0 10px #ff711e0b,0 0 45px #ff711e20,inset 0 0 35px #ff711e0c}
-    .orb:before,.orb:after{content:"";position:absolute;border:1px solid #ffffff13;border-radius:50%;inset:12px}
+    .orb:before,.orb:after{content:"";position:absolute;border:1px solid #ffffff13;border-radius:50%;inset:12px;pointer-events:none}
     .orb:after{inset:25px;border-color:#ff711e40}
-    .orb span{font-size:53px;font-weight:900;letter-spacing:-10px;color:transparent;-webkit-text-stroke:1.5px var(--orange);padding-right:8px;transform:skew(-9deg)}
+    .orb-img{width:100%;height:100%;object-fit:contain;border-radius:50%;padding:10px;position:relative;z-index:1}
+
     .eyebrow{font-size:10px;color:var(--orange-light);font-weight:800;letter-spacing:2.5px;direction:ltr}
     h1{font-size:27px;line-height:1.4;margin:7px 0 8px;font-weight:900;direction:ltr}
     .subtitle{font-size:12px;color:#a6a6a6;margin:0 auto;max-width:280px;line-height:2}
     .divider{height:1px;background:linear-gradient(90deg,transparent,var(--line),transparent);margin:25px 0}
     .actions{display:grid;gap:11px}
-    .action{min-height:57px;border-radius:12px;padding:11px 15px;display:flex;align-items:center;gap:13px;text-align:right;border:1px solid var(--line);background:#1b1b1b;transition:.2s}
+    .action{min-height:57px;border-radius:12px;padding:11px 15px;display:flex;align-items:center;gap:13px;text-align:right;border:1px solid var(--line);background:#1b1b1b;transition:.2s;text-decoration:none;color:inherit}
     .action:hover{transform:translateY(-2px);border-color:#ff711e88;background:#211a16}
     .action.primary{background:linear-gradient(100deg,#ff8a3d,#ff6817);color:#17100b;border:0;box-shadow:0 8px 25px #ff711e22}
     .action.primary:hover{background:linear-gradient(100deg,#ffa05f,#ff792d)}
@@ -56,11 +60,14 @@ html = r'''<!DOCTYPE html>
     <div class="top-accent"></div>
     <div class="inner">
       <div class="brandline">
-        <div class="mark">MP</div>
+        <!-- آدرس عکس لوگو را اینجا قرار دهید -->
+        <img src="logo.png" alt="MAX PLUS" class="mark-img">
         <div class="brand">MAX PLUS<small>FITNESS CLUB</small></div>
       </div>
 
-      <div class="orb"><span>MP</span></div>
+      <!-- آدرس عکس لوگو را اینجا قرار دهید -->
+      <div class="orb"><img src="logo.png" alt="MAX PLUS GYM" class="orb-img"></div>
+
       <div class="eyebrow">YOUR FITNESS DESTINATION</div>
       <h1>MAX PLUS GYM</h1>
       <p class="subtitle">قدرت، تمرکز، پیشرفت.<br>برای شروع مسیر قوی‌تر شدن، با ما همراه شو.</p>
