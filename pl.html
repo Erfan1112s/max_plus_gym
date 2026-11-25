@@ -91,17 +91,10 @@ html = r'''<!DOCTYPE html>
       </div>
 
       <div class="details">
-        <div class="detail"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> آدرس باشگاه <b>آدرس را وارد کنید</b></div>
-        <div class="detail"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ساعات فعالیت <b>ساعات کاری را وارد کنید</b></div>
+        <div class="detail"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/></svg> آدرس باشگاه <b>خیابان شهدا پاساژه نمی دونم</b></div>
+        <div class="detail"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg> ساعات فعالیت <b>ساعت کاری از ۸ صبح تا ۱۲ شب</b></div>
       </div>
-
-      <p class="hint">این کارت را ذخیره کن تا همیشه راه ارتباط با Max Plus Gym را داشته باشی.</p>
-      <div class="footer">TRAIN HARD · STAY <span>FOCUSED</span></div>
     </div>
   </main>
 </body>
 </html>
-'''
-path = Path("/mnt/data/max-plus-gym-nfc.html")
-path.write_text(html, encoding="utf-8")
-print(f"Created: {path} ({path.stat().st_size:,} bytes)")
